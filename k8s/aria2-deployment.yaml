@@ -1,0 +1,38 @@
+kind: Deployment
+apiVersion: v1beta1
+metadata:
+  name: aria2
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: aria2
+    spec:
+      containers:
+        - name: aria2
+          image: dli16/aria2
+          volumeMounts:
+          - name: download-vol
+            mountPath: /downloads
+          - name: config
+            mountPath: /etc/aria2
+          ports:
+          - containerPort: 6800
+          livenessProbe:
+            tcpSocket:
+              port: 6800
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: download-vol
+          persistentVolumeClaim:
+            claimName: aria2-claim
+        - name: config
+          configMap:
+            name: aria2-config
+            items:
+              - key: aria2.conf
+                path: aria2.conf
